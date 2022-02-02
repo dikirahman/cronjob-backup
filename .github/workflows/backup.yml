@@ -1,0 +1,43 @@
+name: Backup database
+
+on:
+  push:
+    branches: [main]
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Backup Database
+        uses: appleboy/ssh-action@master
+        env:
+          MYSQL_HOSTNAME: ${{ secrets.MYSQL_HOSTNAME }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USERNAME: ${{ secrets.MYSQL_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_PORT: ${{ secrets.MYSQL_PORT }}
+          USER: ${{ secrets.USER }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: MYSQL_HOSTNAME,MYSQL_USERNAME, MYSQL_DATABASE,MYSQL_PASSWORD,MYSQL_PORT,USER,AWS_ACCESS_KEY,AWS_SECRET_KEY,S3_BUCKET
+          script_stop: true
+          script: |
+            export MYSQL_HOSTNAME=$MYSQL_HOSTNAME
+            export MYSQL_DATABASE=$MYSQL_DATABASE
+            export MYSQL_USERNAME=$MYSQL_USERNAME
+            export MYSQL_PASSWORD=$MYSQL_PASSWORD
+            export MYSQL_PORT=$MYSQL_PORT
+            export USER=$USER
+            export AWS_ACCESS_KEY=$AWS_ACCESS_KEY
+            export AWS_SECRET_KEY=$AWS_SECRET_KEY
+            export S3_BUCKET=$S3_BUCKET
+            cd ~/task
+            ansible-playbook backup.yml
